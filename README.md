@@ -144,7 +144,7 @@ Submit feedback on a response.
    - `SECRET_KEY` = a random secret string for Flask sessions
 6. Deploy!
 
-> ⏰ On Render's free tier, services spin down after 15 minutes of inactivity. Use [cron-job.org](https://cron-job.org) to ping your app every 5 minutes to keep it awake.
+> ⏰ Render's free tier spins down after 15 minutes of inactivity. The app automatically wakes up when you visit it again.
 
 ## 🛠️ Tech Stack
 
