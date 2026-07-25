@@ -47,32 +47,6 @@
 - Python 3.12+
 - A free API key from [OpenCode Zen](https://opencode.ai/zen)
 
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/ai-assistant.git
-cd ai-assistant
-
-# Set up virtual environment
-python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure your API key
-cp .env.example .env
-# Edit .env and add your OpenCode Zen API key
-```
-
-### Run Locally
-
-```bash
-python app.py
-```
-
-Open **http://localhost:5000** and start chatting!
 
 ## 💬 Chat Modes
 
@@ -193,8 +167,4 @@ Distributed under the **MIT License**. See [LICENSE](LICENSE) for more informati
 
 <div align="center">
   <p>Made with ❤️ for the open-source community</p>
-  <p>
-    <a href="https://github.com/your-username/ai-assistant/issues">Report Bug</a> •
-    <a href="https://github.com/your-username/ai-assistant/issues">Request Feature</a>
-  </p>
 </div>
