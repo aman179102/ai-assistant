@@ -2,12 +2,13 @@ import os
 import json
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from openai import OpenAI
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "super-secret-key-change-in-production")
 
 client = OpenAI(
     api_key=os.getenv("ZEN_API_KEY"),
@@ -16,73 +17,26 @@ client = OpenAI(
 
 MODEL = "deepseek-v4-flash-free"
 FEEDBACK_FILE = "feedback.json"
+MAX_HISTORY = 20
 
-PROMPTS = {
-    "qa": {
-        "name": "Answer Questions",
-        "icon": "fa-question-circle",
-        "description": "Ask factual questions and get informative answers",
-        "prompts": [
-            {
-                "id": "qa_short",
-                "label": "Short & Direct",
-                "system": "You are a helpful assistant. Answer the user's question concisely in 2-3 sentences. Be accurate and factual.",
-            },
-            {
-                "id": "qa_detailed",
-                "label": "Detailed Explanation",
-                "system": "You are a knowledgeable tutor. Provide a comprehensive, well-structured answer with examples and explanations. Write 3-4 paragraphs.",
-            },
-            {
-                "id": "qa_creative",
-                "label": "Creative & Fun",
-                "system": "You are a creative and witty explainer. Answer the question in an engaging, fun, and memorable way. Use analogies and humor where appropriate.",
-            },
-        ],
+CHAT_MODES = {
+    "general": {
+        "name": "General Chat",
+        "icon": "fa-comments",
+        "description": "Chat about anything — casual conversation, fun facts, and daily topics",
+        "system": "You are a friendly and engaging conversational AI. Chat naturally with the user on any topic. Be warm, helpful, and keep the conversation flowing. Ask follow-up questions to keep things interesting. Respond in 2-4 sentences unless the user asks for more detail.",
     },
-    "summarize": {
-        "name": "Summarize Text",
-        "icon": "fa-compress-alt",
-        "description": "Paste any text and get a concise summary",
-        "prompts": [
-            {
-                "id": "sum_short",
-                "label": "One-Line Summary",
-                "system": "You are a text summarizer. Summarize the following text in ONE single sentence. Be precise and capture the main idea only.",
-            },
-            {
-                "id": "sum_bullet",
-                "label": "Bullet Points",
-                "system": "You are a text analyst. Summarize the following text using 3-5 bullet points. Each bullet should capture one key takeaway. Be clear and concise.",
-            },
-            {
-                "id": "sum_detailed",
-                "label": "Detailed Summary",
-                "system": "You are a professional editor. Provide a thorough summary covering the main arguments, supporting details, and conclusions. Write 2-3 paragraphs maintaining the original tone.",
-            },
-        ],
+    "info": {
+        "name": "Information & Recommendations",
+        "icon": "fa-lightbulb",
+        "description": "Ask for facts, explanations, and personalized recommendations",
+        "system": "You are a knowledgeable guide. Provide accurate information and thoughtful recommendations based on the user's questions. When giving recommendations, ask about their preferences first. Support your answers with clear reasoning. Be concise but thorough.",
     },
     "creative": {
-        "name": "Creative Writing",
-        "icon": "fa-feather-alt",
-        "description": "Generate stories, poems, essays, and more",
-        "prompts": [
-            {
-                "id": "cr_story",
-                "label": "Short Story",
-                "system": "You are a creative writer. Write a short story based on the user's prompt. Include interesting characters, vivid descriptions, and a satisfying narrative arc. Keep it 300-500 words.",
-            },
-            {
-                "id": "cr_poem",
-                "label": "Poem",
-                "system": "You are a poet. Write a poem based on the user's theme. Use rhythmic language, imagery, and emotional depth. Can be rhyming or free verse.",
-            },
-            {
-                "id": "cr_essay",
-                "label": "Essay / Article",
-                "system": "You are a skilled essay writer. Write a well-structured short essay or article on the given topic. Include an introduction, body with key points, and a conclusion. Write 400-600 words.",
-            },
-        ],
+        "name": "Creative Chat",
+        "icon": "fa-feather",
+        "description": "Storytelling, jokes, poems, and imaginative conversations",
+        "system": "You are a creative and imaginative conversation partner. Tell stories, write poems, crack jokes, and explore wild ideas. Be playful, use vivid language, and encourage the user to be creative too. Make every response entertaining and inspiring.",
     },
 }
 
@@ -103,58 +57,71 @@ def save_feedback(entry):
 
 @app.route("/")
 def index():
-    return render_template("index.html", functions=PROMPTS)
+    return render_template("index.html", modes=CHAT_MODES)
 
 
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
-    function_key = data.get("function")
-    prompt_key = data.get("prompt")
-    user_input = data.get("input", "").strip()
+    mode = data.get("mode", "general")
+    user_message = data.get("message", "").strip()
 
-    if not function_key or not prompt_key or not user_input:
-        return jsonify({"error": "Missing required fields"}), 400
+    if not user_message:
+        return jsonify({"error": "Please enter a message"}), 400
 
-    func = PROMPTS.get(function_key)
-    if not func:
-        return jsonify({"error": "Invalid function"}), 400
+    chat_mode = CHAT_MODES.get(mode)
+    if not chat_mode:
+        return jsonify({"error": "Invalid chat mode"}), 400
 
-    prompt_config = next((p for p in func["prompts"] if p["id"] == prompt_key), None)
-    if not prompt_config:
-        return jsonify({"error": "Invalid prompt style"}), 400
+    if "conversation" not in session:
+        session["conversation"] = []
 
-    system_msg = prompt_config["system"]
-
-    if function_key == "summarize":
-        user_msg = f"{system_msg}\n\nText to summarize:\n{user_input}"
-        messages = [{"role": "user", "content": user_msg}]
-    else:
-        messages = [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": user_input},
-        ]
+    history = session["conversation"][-(MAX_HISTORY - 1):]
+    messages = [{"role": "system", "content": chat_mode["system"]}]
+    for entry in history:
+        messages.append({"role": "user", "content": entry["user"]})
+        messages.append({"role": "assistant", "content": entry["bot"]})
+    messages.append({"role": "user", "content": user_message})
 
     try:
         response = client.chat.completions.create(
             model=MODEL,
             messages=messages,
-            max_tokens=1024,
-            temperature=0.7,
+            max_tokens=512,
+            temperature=0.8,
         )
-        reply = response.choices[0].message.content
-        return jsonify({"response": reply})
+        bot_reply = response.choices[0].message.content
+
+        session["conversation"].append({
+            "user": user_message,
+            "bot": bot_reply,
+            "mode": mode,
+        })
+        session.modified = True
+
+        return jsonify({"response": bot_reply})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/reset", methods=["POST"])
+def reset():
+    session.pop("conversation", None)
+    return jsonify({"status": "ok"})
+
+
+@app.route("/history", methods=["GET"])
+def get_history():
+    conv = session.get("conversation", [])
+    return jsonify({"history": conv})
 
 
 @app.route("/feedback", methods=["POST"])
 def feedback():
     data = request.get_json()
     entry = {
-        "function": data.get("function"),
-        "prompt": data.get("prompt"),
-        "user_input": data.get("input", "")[:200],
+        "mode": data.get("mode"),
+        "message": data.get("message", "")[:200],
         "response": data.get("response", "")[:200],
         "helpful": data.get("helpful"),
         "timestamp": datetime.now().isoformat(),
