@@ -5,9 +5,9 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensource&logoColor=white" alt="License">
   <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge" alt="Status">
   <br>
-  <img src="https://img.shields.io/github/stars/aman179102/ai-assistant?style=flat-square&logo=github" alt="Stars">
-  <img src="https://img.shields.io/github/forks/aman179102/ai-assistant?style=flat-square&logo=github" alt="Forks">
-  <img src="https://img.shields.io/github/issues/aman179102/ai-assistant?style=flat-square&logo=github" alt="Issues">
+  <img src="https://img.shields.io/badge/Stars-Welcome-brightgreen?style=flat-square&logo=github" alt="Stars">
+  <img src="https://img.shields.io/badge/Contributions-Open-blue?style=flat-square&logo=github" alt="Contributions">
+  <img src="https://img.shields.io/badge/Builds-Passing-success?style=flat-square&logo=github" alt="Builds">
 </div>
 
 <br>
@@ -51,7 +51,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/aman179102/ai-assistant.git
+git clone https://github.com/your-username/ai-assistant.git
 cd ai-assistant
 
 # Set up virtual environment
@@ -192,9 +192,9 @@ Distributed under the **MIT License**. See [LICENSE](LICENSE) for more informati
 ---
 
 <div align="center">
-  <p>Made with ❤️ by <a href="https://github.com/aman179102">aman179102</a></p>
+  <p>Made with ❤️ for the open-source community</p>
   <p>
-    <a href="https://github.com/aman179102/ai-assistant/issues">Report Bug</a> •
-    <a href="https://github.com/aman179102/ai-assistant/issues">Request Feature</a>
+    <a href="https://github.com/your-username/ai-assistant/issues">Report Bug</a> •
+    <a href="https://github.com/your-username/ai-assistant/issues">Request Feature</a>
   </p>
 </div>

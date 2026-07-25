@@ -9,6 +9,6 @@
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please open an issue at:
-https://github.com/aman179102/ai-assistant/issues
+https://github.com/your-username/ai-assistant/issues
 
 Please do NOT disclose the vulnerability publicly until it has been addressed.
